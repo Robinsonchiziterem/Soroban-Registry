@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, AnalyticsEvent, AnalyticsEventType, ActivityFeedResponse } from '@/lib/api';
+import { ContractDeploymentEvent, ContractUpdateEvent } from '@/types/realtime';
 import { useRealtime } from '@/hooks/useRealtime';
 import { formatPublicKey, formatShortenedText } from '@/lib/utils/formatting';
 import {
@@ -17,12 +18,13 @@ import {
   Clock,
   Zap,
   Tag,
-  type LucideIcon,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/client';
+import type { TFunction } from 'i18next';
 
-const getEventConfig = (t: any): Record<string, { icon: any, label: string, color: string }> => ({
+const getEventConfig = (t: TFunction): Record<string, { icon: LucideIcon, label: string, color: string }> => ({
   contract_published: { icon: Upload, label: t('activityFeed.published'), color: 'text-blue-500 bg-blue-500/10' },
   contract_verified: { icon: CheckCircle2, label: t('activityFeed.verified'), color: 'text-emerald-500 bg-emerald-500/10' },
   contract_deployed: { icon: Zap, label: t('activityFeed.deployed'), color: 'text-amber-500 bg-amber-500/10' },
@@ -54,39 +56,41 @@ export default function ActivityFeed() {
   // Update items when data changes
   useEffect(() => {
     if (data) {
-      setItems(data.items);
-      setNextCursor(data.next_cursor);
+      requestAnimationFrame(() => {
+        setItems(data.items);
+        setNextCursor(data.next_cursor);
+      });
     }
   }, [data]);
 
   // Handle real-time events
   useEffect(() => {
-    const handleDeployment = (event: RealtimeDeploymentEvent) => {
+    const handleDeployment = (event: ContractDeploymentEvent) => {
       // Convert RealtimeEvent to AnalyticsEvent
       const newEvent: AnalyticsEvent = {
         id: Math.random().toString(36).substring(7),
         event_type: 'contract_deployed',
-        contract_id: event.contract_id,
+        contract_id: event.contractId,
         user_address: event.publisher,
-        network: null, // We don't have it in the realtime event directly but could infer or leave null
-        metadata: { name: event.contract_name, version: event.version },
-        created_at: event.timestamp || new Date().toISOString(),
+        network: null,
+        metadata: { name: event.contractName, version: event.version },
+        created_at: event.timestamp,
       };
 
       if (eventType === 'all' || eventType === 'contract_deployed') {
-        setItems(prev => [newEvent, ...prev].slice(0, 100)); // Limit local cache
+        setItems(prev => [newEvent, ...prev].slice(0, 100));
       }
     };
 
-    const handleUpdate = (event: RealtimeUpdateEvent) => {
+    const handleUpdate = (event: ContractUpdateEvent) => {
       const newEvent: AnalyticsEvent = {
         id: Math.random().toString(36).substring(7),
         event_type: 'contract_updated',
-        contract_id: event.contract_id,
+        contract_id: event.contractId,
         user_address: null,
         network: null,
-        metadata: { update_type: event.update_type, ...event.details },
-        created_at: event.timestamp || new Date().toISOString(),
+        metadata: { update_type: event.updateType, ...event.details },
+        created_at: event.timestamp,
       };
 
       if (eventType === 'all' || eventType === 'contract_updated') {
@@ -94,8 +98,8 @@ export default function ActivityFeed() {
       }
     };
 
-    const unsubDeploy = subscribe('contract_deployed', handleDeployment);
-    const unsubUpdate = subscribe('contract_updated', handleUpdate);
+    const unsubDeploy = subscribe('contract_deployed', (data: unknown) => handleDeployment(data as ContractDeploymentEvent));
+    const unsubUpdate = subscribe('contract_updated', (data: unknown) => handleUpdate(data as ContractUpdateEvent));
 
     return () => {
       unsubDeploy();
@@ -202,10 +206,10 @@ export default function ActivityFeed() {
                             href={`/contracts/${item.contract_id}`}
                             className="font-medium text-primary hover:underline flex items-center gap-1"
                           >
-                            {item.metadata?.name || formatShortenedText(item.contract_id, 10, '...')}
+                            {(item.metadata?.name as string) || formatShortenedText(item.contract_id, 10, '...')}
                             <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </Link>
-                          {item.metadata?.version && (
+                          {typeof item.metadata?.version === 'string' && (
                             <span className="text-muted-foreground">v{item.metadata.version}</span>
                           )}
                         </div>
@@ -231,7 +235,7 @@ export default function ActivityFeed() {
                         )}
                       </div>
 
-                      {item.event_type === 'contract_updated' && item.metadata?.update_type && (
+                      {item.event_type === 'contract_updated' && typeof item.metadata?.update_type === 'string' && (
                         <div className="mt-1 text-xs px-2 py-1 rounded bg-muted/50 border border-border inline-block w-fit">
                           <span className="font-medium">{t('activityFeed.type')}:</span> {item.metadata.update_type}
                         </div>

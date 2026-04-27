@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { BarChart2, Code2, Download, Link2 } from 'lucide-react';
 import { useComparison } from '@/hooks/useComparison';
@@ -9,6 +9,15 @@ import ComparisonTable from '@/components/comparison/ComparisonTable';
 import MobileComparisonCard from '@/components/comparison/MobileComparisonCard';
 import { useCopy } from '@/hooks/useCopy';
 import { exportComparisonToCsv, exportComparisonToPdf } from '@/utils/export';
+
+const DiffViewer = dynamic(() => import('@/components/comparison/DiffViewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="text-sm font-semibold text-foreground">Loading diff viewer...</div>
+    </div>
+  ),
+});
 
 export default function CompareContracts() {
   const [viewMode, setViewMode] = useState<'table' | 'diff'>('table');
@@ -27,19 +36,6 @@ export default function CompareContracts() {
     baselineId,
     setBaselineId,
   } = useComparison();
-
-  const DiffViewer = useMemo(
-    () =>
-      dynamic(() => import('@/components/comparison/DiffViewer'), {
-        ssr: false,
-        loading: () => (
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <div className="text-sm font-semibold text-foreground">Loading diff viewer...</div>
-          </div>
-        ),
-      }),
-    [],
-  );
 
   const selectedChips = useMemo(
     () => selectedContracts.map((c) => ({ id: c.id, name: c.name })),

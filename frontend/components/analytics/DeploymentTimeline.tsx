@@ -88,7 +88,7 @@ export default function DeploymentTimeline({ initialData = [] }: DeploymentTimel
   }, [contracts]);
 
   const timeBounds = useMemo(() => {
-    if (filteredContracts.length === 0) return { min: 0, max: Date.now() };
+    if (filteredContracts.length === 0) return { min: 0, max: 0 };
     const timestamps = filteredContracts.map(c => new Date(c.created_at).getTime());
     return {
       min: Math.min(...timestamps),

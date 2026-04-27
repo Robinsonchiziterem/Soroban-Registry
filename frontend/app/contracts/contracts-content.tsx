@@ -8,13 +8,15 @@ import ContractCardSkeleton from '@/components/ContractCardSkeleton';
 import { ActiveFilters } from '@/components/contracts/ActiveFilters';
 import { FilterPanel } from '@/components/contracts/FilterPanel';
 import { ResultsCount } from '@/components/contracts/ResultsCount';
-import { SortDropdown, SortBy } from '@/components/contracts/SortDropdown';
+import { SortDropdown } from '@/components/contracts/SortDropdown';
+import { SortBy, resolveInitialSortPreference } from './sort-utils';
 import TagAutocomplete from '@/components/tags/TagAutocomplete';
-import { Filter, Package, SlidersHorizontal, X, Sparkles, CheckCircle, Users } from 'lucide-react';
+import { Filter, Package, SlidersHorizontal, X, Sparkles, CheckCircle, Users, Search } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import QueryBuilder from '@/components/contracts/QueryBuilder';
 import FavoriteSearches from '@/components/contracts/FavoriteSearches';
+import { SearchBar } from '@/components/contracts/SearchBar';
 import {
   combineAdvancedQueryWithFilters,
   parseAdvancedContractQuery,
@@ -168,8 +170,8 @@ export function getInitialFilters(searchParams: URLSearchParams): ContractsUiFil
     author: searchParams.get('author') || '',
     networks,
     verified_only: searchParams.get('verified_only') === 'true',
-    sort_by: validSortBys.includes(sortBy) ? sortBy : (query ? 'relevance' : DEFAULT_SORT_BY),
-    sort_order: sortOrder === 'asc' || sortOrder === 'desc' ? sortOrder : DEFAULT_SORT_ORDER,
+    sort_by: sortPreference.sort_by,
+    sort_order: sortPreference.sort_order,
     page: Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1,
     page_size: DEFAULT_PAGE_SIZE,
   };
@@ -475,6 +477,16 @@ export function ContractsContent() {
     return chips;
   }, [filters]);
 
+  const categoryOptions = useMemo(() =>
+    CATEGORY_OPTIONS_NAMES.map((name) => ({ value: name, label: name })),
+    []
+  );
+
+  const networkOptions = useMemo(() =>
+    ALL_NETWORK_FILTERS.map((network) => ({ value: network, label: network.charAt(0).toUpperCase() + network.slice(1) })),
+    []
+  );
+
   const filterPanelProps = {
     categories: categoryOptions,
     selectedCategories: filters.categories,
@@ -546,11 +558,11 @@ export function ContractsContent() {
             <div className="max-w-2xl mx-auto mb-10">
               <SearchBar
                 value={filters.query}
-                onChange={(next) =>
+                onChange={(next: string) =>
                   setFilters((current) => ({ ...current, query: next, page: 1 }))
                 }
                 onClear={() => setFilters((current) => ({ ...current, query: '', page: 1 }))}
-                onCommit={(committed) => {
+                onCommit={(committed: string) => {
                   const parsed = parseAdvancedContractQuery(committed);
                   if (parsed.usesOr) {
                     setFilters((current) => ({ ...current, query: committed, page: 1 }));
@@ -774,7 +786,7 @@ export function ContractsContent() {
                 <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold mb-2">No contracts found</h3>
                 <p className="text-muted-foreground max-w-md mx-auto mb-6 text-sm">
-                  We couldn't find any contracts matching your current filters. Try adjusting your
+                  We couldn&apos;t find any contracts matching your current filters. Try adjusting your
                   search or clearing some filters.
                 </p>
                 <button

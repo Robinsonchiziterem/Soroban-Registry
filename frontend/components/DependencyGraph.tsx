@@ -29,6 +29,11 @@ interface SimLink extends d3.SimulationLinkDatum<SimNode> {
   data: GraphEdge;
 }
 
+interface D3EdgeWithNode {
+  source: string | { id: string };
+  target: string | { id: string };
+}
+
 // ─── Colour helpers ───────────────────────────────────────────────────────────
 const NETWORK_COLOR: Record<string, string> = {
   mainnet: "#22c55e",
@@ -94,8 +99,9 @@ const DependencyGraph = forwardRef<DependencyGraphHandle, DependencyGraphProps>(
       
       edges.forEach(e => {
         // Handle both raw edges (strings) and D3-mutated edges (objects)
-        const src = typeof e.source === 'string' ? e.source : (e.source as any).id;
-        const tgt = typeof e.target === 'string' ? e.target : (e.target as any).id;
+        const edge = e as D3EdgeWithNode;
+        const src = typeof edge.source === 'string' ? edge.source : edge.source.id;
+        const tgt = typeof edge.target === 'string' ? edge.target : edge.target.id;
         
         if (!outEdges.has(src)) outEdges.set(src, []);
         if (!inEdges.has(tgt)) inEdges.set(tgt, []);

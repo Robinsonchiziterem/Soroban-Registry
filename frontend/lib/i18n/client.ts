@@ -23,7 +23,11 @@ i18next
     preload: runsOnServerSide ? languages : []
   })
 
-export function useTranslation(lng: string, ns = 'common', options: any = {}) {
+interface UseTranslationOptions {
+  keyPrefix?: string;
+}
+
+export function useTranslation(lng: string, ns = 'common', options: UseTranslationOptions = {}) {
   const [cookies, setCookie] = useCookies([cookieName])
   const ret = useTranslationOrg(ns, options)
   const { i18n } = ret
@@ -35,7 +39,8 @@ export function useTranslation(lng: string, ns = 'common', options: any = {}) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
       if (activeLng === i18n.resolvedLanguage) return
-      setActiveLng(i18n.resolvedLanguage)
+      // Use requestAnimationFrame to avoid synchronous setState during render
+      requestAnimationFrame(() => setActiveLng(i18n.resolvedLanguage))
     }, [activeLng, i18n.resolvedLanguage])
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {

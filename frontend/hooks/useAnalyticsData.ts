@@ -28,7 +28,7 @@ export function useAnalyticsData(period: TimePeriod): UseAnalyticsDataReturn {
   }, [period]);
 
   useEffect(() => {
-    loadData();
+    requestAnimationFrame(() => void loadData());
 
     const intervalId = setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;

@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useTranslation } from '@/lib/i18n/client';
 import Navbar from '@/components/Navbar';
 import ActivityFeed from '@/components/ActivityFeed';
 import { useCopy } from '@/hooks/useCopy';

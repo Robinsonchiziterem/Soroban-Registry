@@ -82,7 +82,8 @@ export default function FavoritesProvider({ children }: FavoritesProviderProps) 
 
     if (token) {
       // Authenticated: fetch from backend as authoritative source
-      setIsLoading(true);
+      // Defer setState to avoid synchronous setState during effect
+      requestAnimationFrame(() => setIsLoading(true));
       fetchBackendFavorites(token)
         .then((backendFavorites) => {
           setFavorites(deduplicate(backendFavorites));
@@ -99,10 +100,10 @@ export default function FavoritesProvider({ children }: FavoritesProviderProps) 
       // Guest: read from localStorage
       try {
         const localFavorites = readFromLocalStorage();
-        setFavorites(deduplicate(localFavorites));
+        requestAnimationFrame(() => setFavorites(deduplicate(localFavorites)));
       } catch {
         showWarning("Favorites won't be saved — browser storage is unavailable");
-        setFavorites([]);
+        requestAnimationFrame(() => setFavorites([]));
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -157,7 +158,6 @@ export default function FavoritesProvider({ children }: FavoritesProviderProps) 
       clearInterval(interval);
       window.removeEventListener('storage', onStorage);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleFavorite = useCallback((id: string) => {

@@ -1,6 +1,6 @@
 import type { Contract } from '@/lib/api';
 
-export type SortBy = 'name' | 'created_at' | 'popularity' | 'rating' | 'relevance';
+export type SortBy = 'name' | 'created_at' | 'popularity' | 'rating' | 'relevance' | 'downloads';
 export type SortOrder = 'asc' | 'desc';
 
 export interface SortPreference {
@@ -20,7 +20,8 @@ function isSortBy(value: string | null | undefined): value is SortBy {
     || value === 'created_at'
     || value === 'popularity'
     || value === 'rating'
-    || value === 'relevance';
+    || value === 'relevance'
+    || value === 'downloads';
 }
 
 export function normalizeSortBy(
@@ -48,7 +49,7 @@ export function readStoredSortPreference(storage?: Pick<Storage, 'getItem'> | nu
     if (!isSortBy(parsed.sort_by ?? null)) return null;
 
     return {
-      sort_by: parsed.sort_by,
+      sort_by: parsed.sort_by!,
       sort_order: normalizeSortOrder(parsed.sort_order),
     };
   } catch {
@@ -109,6 +110,7 @@ export function sortContracts(
         comparison = compareText(a.name, b.name);
         break;
       case 'popularity':
+      case 'downloads':
         comparison = getNumericValue(a, ['popularity_score', 'interaction_count', 'deployment_count'])
           - getNumericValue(b, ['popularity_score', 'interaction_count', 'deployment_count']);
         break;

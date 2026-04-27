@@ -293,6 +293,7 @@ export type MaturityLevel = 'alpha' | 'beta' | 'stable' | 'mature' | 'legacy';
 
 export interface ContractSearchParams {
   query?: string;
+  contract_id?: string;
   network?: "mainnet" | "testnet" | "futurenet";
   networks?: Array<"mainnet" | "testnet" | "futurenet">;
   verified_only?: boolean;

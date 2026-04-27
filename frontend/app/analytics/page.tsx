@@ -10,9 +10,41 @@ import RecentAdditionsTimeline from '@/components/analytics/RecentAdditionsTimel
 import TopPublishersList from '@/components/analytics/TopPublishersList';
 import { AlertCircle, RefreshCw, BarChart3, Users, Clock, Flame, PieChart, Activity } from 'lucide-react';
 
+interface CategoryDistributionItem {
+  total_views: number;
+  contract_count: number;
+  category?: string;
+}
+
+interface NetworkUsageItem {
+  verified_count: number;
+  contract_count: number;
+  network: string;
+}
+
+interface Publisher {
+  publisher_id: string;
+  name: string;
+  contract_count: number;
+  total_views: number;
+}
+
+interface DeploymentTrend {
+  date: string;
+  count: number;
+}
+
+interface AnalyticsData {
+  category_distribution?: CategoryDistributionItem[];
+  network_usage?: NetworkUsageItem[];
+  deployment_trends?: DeploymentTrend[];
+  top_publishers?: Publisher[];
+  recent_additions?: Record<string, unknown>[];
+}
+
 export default function AnalyticsDashboard() {
-  const [data, setData] = useState<any>(null);
-  const [trending, setTrending] = useState<any[]>([]);
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [trending, setTrending] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
@@ -45,7 +77,7 @@ export default function AnalyticsDashboard() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    requestAnimationFrame(() => void fetchData());
     
     // Real-time update capability: Poll every 30 seconds
     const interval = setInterval(() => {
@@ -121,19 +153,19 @@ export default function AnalyticsDashboard() {
            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Views</p>
               <p className="text-3xl font-black text-foreground">
-                {data?.category_distribution?.reduce((acc: number, cur: any) => acc + cur.total_views, 0).toLocaleString() || 0}
+                {data?.category_distribution?.reduce((acc: number, cur: CategoryDistributionItem) => acc + cur.total_views, 0).toLocaleString() || 0}
               </p>
            </div>
            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Active Contracts</p>
               <p className="text-3xl font-black text-foreground">
-                {data?.category_distribution?.reduce((acc: number, cur: any) => acc + cur.contract_count, 0).toLocaleString() || 0}
+                {data?.category_distribution?.reduce((acc: number, cur: CategoryDistributionItem) => acc + cur.contract_count, 0).toLocaleString() || 0}
               </p>
            </div>
            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Verified Gate</p>
               <p className="text-3xl font-black text-foreground">
-                {data?.network_usage?.reduce((acc: number, cur: any) => acc + cur.verified_count, 0).toLocaleString() || 0}
+                {data?.network_usage?.reduce((acc: number, cur: NetworkUsageItem) => acc + cur.verified_count, 0).toLocaleString() || 0}
               </p>
            </div>
            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm bg-gradient-to-br from-card to-primary/5">
@@ -178,7 +210,7 @@ export default function AnalyticsDashboard() {
                         <PieChart className="w-5 h-5 text-pink-500" />
                         <h3 className="font-bold">By Category</h3>
                     </div>
-                    <CategoryDistributionPie data={data?.category_distribution?.map((i: any) => ({ category: i.category || 'Other', count: i.contract_count })) || []} />
+                    <CategoryDistributionPie data={data?.category_distribution?.map((i: CategoryDistributionItem) => ({ category: i.category || 'Other', count: i.contract_count })) || []} />
                 </div>
 
                 <div className="bg-card border border-border rounded-2xl shadow-sm p-6">
@@ -186,7 +218,7 @@ export default function AnalyticsDashboard() {
                         <BarChart3 className="w-5 h-5 text-blue-500" />
                         <h3 className="font-bold">Network Usage</h3>
                     </div>
-                    <NetworkUsageBarChart data={data?.network_usage?.map((i: any) => ({ network: i.network, contract_count: i.contract_count })) || []} />
+                    <NetworkUsageBarChart data={data?.network_usage?.map((i: NetworkUsageItem) => ({ network: i.network, contract_count: i.contract_count })) || []} />
                 </div>
 
                 <div className="bg-card border border-border rounded-2xl shadow-sm p-6">

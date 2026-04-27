@@ -4,8 +4,9 @@ import React from 'react';
 import { CheckCircle2, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
 import type { VerificationStatus } from '@/types/verification';
 import { useTranslation } from '@/lib/i18n/client';
+import type { TFunction } from 'i18next';
 
-function getBadgeConfig(status: VerificationStatus, t: any): {
+function getBadgeConfig(status: VerificationStatus, t: TFunction): {
   label: string;
   className: string;
   Icon: React.ComponentType<{ className?: string }>;

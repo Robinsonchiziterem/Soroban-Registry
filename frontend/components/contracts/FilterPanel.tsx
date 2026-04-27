@@ -155,6 +155,12 @@ function MultiSelectDropdown({
                 );
               })}
             </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function CheckboxGroup({
   title,
@@ -239,9 +245,25 @@ export function FilterPanel({
     }));
   };
 
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Filters</h3>
+        {activeFilterCount > 0 && (
+          <button
+            type="button"
+            onClick={onResetAll}
+            className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Reset all
+          </button>
+        )}
+      </div>
+
       <CheckboxGroup
         title="Network"
-        options={networks}
+        options={networks.map((n) => n.value)}
         selected={selectedNetworks}
         onToggle={onToggleNetwork}
       />
@@ -292,6 +314,15 @@ export function FilterPanel({
         </div>
         Verified only
       </button>
+
+      {languages.length > 0 && (
+        <CheckboxGroup
+          title="Languages"
+          options={languages}
+          selected={selectedLanguages}
+          onToggle={onToggleLanguage}
+        />
+      )}
     </div>
   );
 }

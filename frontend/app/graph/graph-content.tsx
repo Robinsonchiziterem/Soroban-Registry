@@ -107,9 +107,11 @@ export function GraphContent() {
     // Reset exploration state when mode is toggled off
     useEffect(() => {
         if (!explorationMode) {
-            setExplorationNodes([]);
-            setExplorationEdges([]);
-            setExpandedNodeIds(new Set());
+            requestAnimationFrame(() => {
+                setExplorationNodes([]);
+                setExplorationEdges([]);
+                setExpandedNodeIds(new Set());
+            });
         }
     }, [explorationMode]);
 
@@ -292,7 +294,7 @@ export function GraphContent() {
 
     // Reset match index when query or matches change
     useEffect(() => {
-        setSearchMatchIndex(0);
+        requestAnimationFrame(() => setSearchMatchIndex(0));
     }, [searchQuery]);
 
     // Auto-focus on the active match
@@ -450,61 +452,59 @@ export function GraphContent() {
                 onPanRight={() => graphRef.current?.panRight()}
                 networkCounts={networkCounts}
             />            {/* Selected Node Panel */}
-            {selectedNode && (() => {
-                const node = selectedNode;
-                return (
-                    <div className="absolute bottom-4 left-4 z-30 w-80 bg-card/90 backdrop-blur-xl border border-border rounded-xl shadow-lg overflow-hidden">
-                        {/* Header */}
-                        <div className="p-4 pb-3">
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0 pr-2">
-                                    <h3 className="font-semibold text-foreground text-base truncate">{node.name}</h3>
-                                    <p className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">{node.contract_id}</p>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedNode(null)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1 rounded hover:bg-accent focus-visible:ring-1 focus-visible:ring-primary focus:outline-none"
-                                    aria-label="Close panel"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
+            {selectedNode && (
+                <div className="absolute bottom-4 left-4 z-30 w-80 bg-card/90 backdrop-blur-xl border border-border rounded-xl shadow-lg overflow-hidden">
+                    {/* Header */}
+                    <div className="p-4 pb-3">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0 pr-2">
+                                <h3 className="font-semibold text-foreground text-base truncate">{selectedNode.name}</h3>
+                                <p className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">{selectedNode.contract_id}</p>
                             </div>
+                            <button
+                                onClick={() => setSelectedNode(null)}
+                                className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1 rounded hover:bg-accent focus-visible:ring-1 focus-visible:ring-primary focus:outline-none"
+                                aria-label="Close panel"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
+                    </div>
 
-                        {/* Stats row */}
-                        <div className="grid grid-cols-3 gap-px bg-border">
-                            <div className="bg-card p-2.5 text-center">
-                                <div className="text-lg font-bold text-foreground">{dependentCounts.get(node.id) || 0}</div>
-                                <div className="text-[10px] text-muted-foreground">{t('graph.dependents')}</div>
-                            </div>
-                            <div className="bg-card p-2.5 text-center">
-                                <div className="text-lg font-bold text-foreground">{dependencyCounts.get(node.id) || 0}</div>
-                                <div className="text-[10px] text-muted-foreground">{t('graph.dependencies')}</div>
-                            </div>
-                            <div className="bg-card p-2.5 text-center">
-                                <div className={`text-sm font-bold ${node.is_verified ? 'text-green-500' : 'text-muted-foreground'}`}>
-                                    {node.is_verified ? `✓ ${t('common.yes', 'Yes')}` : '—'}
-                                </div>
-                                <div className="text-[10px] text-muted-foreground">{t('graph.verified')}</div>
-                            </div>
+                    {/* Stats row */}
+                    <div className="grid grid-cols-3 gap-px bg-border">
+                        <div className="bg-card p-2.5 text-center">
+                            <div className="text-lg font-bold text-foreground">{dependentCounts.get(selectedNode.id) || 0}</div>
+                            <div className="text-[10px] text-muted-foreground">{t('graph.dependents')}</div>
                         </div>
+                        <div className="bg-card p-2.5 text-center">
+                            <div className="text-lg font-bold text-foreground">{dependencyCounts.get(selectedNode.id) || 0}</div>
+                            <div className="text-[10px] text-muted-foreground">{t('graph.dependencies')}</div>
+                        </div>
+                        <div className="bg-card p-2.5 text-center">
+                            <div className={`text-sm font-bold ${selectedNode.is_verified ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                {selectedNode.is_verified ? `✓ ${t('common.yes', 'Yes')}` : '—'}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">{t('graph.verified')}</div>
+                        </div>
+                    </div>
 
-                        {/* Details + Tags */}
-                        <div className="p-4 pt-3 space-y-3">
-                            <div className="space-y-1.5 text-sm">
+                    {/* Details + Tags */}
+                    <div className="p-4 pt-3 space-y-3">
+                        <div className="space-y-1.5 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">{t('graph.network')}</span>
+                                <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${selectedNode.network === 'mainnet' ? 'text-green-600 bg-green-500/10' :
+                                    selectedNode.network === 'testnet' ? 'text-blue-600 bg-blue-500/10' : 'text-purple-600 bg-purple-500/10'
+                                    }`}>{selectedNode.network}</span>
+                            </div>
+                            {selectedNode.category && (
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">{t('graph.network')}</span>
-                                    <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${node.network === 'mainnet' ? 'text-green-600 bg-green-500/10' :
-                                        node.network === 'testnet' ? 'text-blue-600 bg-blue-500/10' : 'text-purple-600 bg-purple-500/10'
-                                        }`}>{node.network}</span>
+                                    <span className="text-muted-foreground">{t('graph.type')}</span>
+                                    <span className="text-foreground font-medium">{selectedNode.category}</span>
                                 </div>
-                                {node.category && (
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">{t('graph.type')}</span>
-                                        <span className="text-foreground font-medium">{node.category}</span>
-                                    </div>
-                                )}
-                            </div>
+                            )}
+                        </div>
 
                         {/* Link */}
                         <div className="grid grid-cols-2 gap-2 pt-2">
@@ -528,8 +528,8 @@ export function GraphContent() {
                             </a>
                         </div>
                     </div>
-                );
-            })()}
+                </div>
+            )}
 
             {/* Empty State */}
             {!demoMode && nodes.length === 0 && !isLoading && (

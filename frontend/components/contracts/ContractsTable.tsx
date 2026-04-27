@@ -150,9 +150,7 @@ export function ContractsTable({ data, sortBy, sortOrder, onSortChange }: Contra
       accessorFn: (row: Contract & { deployment_count?: number }) =>
         typeof row.deployment_count === 'number'
           ? row.deployment_count
-          : typeof row.deployments === 'number'
-            ? row.deployments
-            : 0,
+          : 0,
       header: 'Deployments',
       cell: ({ getValue }) => <div className="font-mono text-xs">{getValue() as number}</div>,
     },

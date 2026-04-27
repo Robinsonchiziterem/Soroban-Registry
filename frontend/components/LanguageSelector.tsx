@@ -9,7 +9,7 @@ export default function LanguageSelector({ lng }: { lng: string }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    requestAnimationFrame(() => setMounted(true))
   }, [])
 
   if (!mounted) return null
