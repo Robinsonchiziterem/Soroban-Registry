@@ -1,3 +1,5 @@
+import tsParser from "@typescript-eslint/parser";
+
 /** @type {import('eslint').Linter.Config[]} */
 const eslintConfig = [
   {
@@ -12,10 +14,18 @@ const eslintConfig = [
       "node_modules/**",
     ],
   },
+  // TypeScript + TSX files — use the TS parser
   {
-    files: ["**/*.{js,jsx,ts,tsx,mjs,cjs}"],
+    files: ["**/*.{ts,tsx,mts,cts}"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: { jsx: true },
+      },
+    },
     rules: {
-      // Unused vars: warn only, ignore _-prefixed identifiers
       "no-unused-vars": [
         "warn",
         {
@@ -27,6 +37,22 @@ const eslintConfig = [
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+      "no-undef": "off",
+      "no-console": "warn",
+    },
+  },
+  // Plain JS + JSX files
+  {
+    files: ["**/*.{js,jsx,mjs,cjs}"],
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    rules: {
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "no-undef": "off",
       "no-console": "warn",
     },
