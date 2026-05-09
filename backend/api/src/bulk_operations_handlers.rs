@@ -589,7 +589,7 @@ pub async fn get_import_status(
     tag = "Bulk Operations"
 )]
 pub async fn get_export_contracts(
-    State(state): State<AppState>,
+    State(_state): State<AppState>,
     _claims: Option<AuthClaims>,
     Query(params): Query<ContractExportQueryParams>,
 ) -> ApiResult<Response> {
